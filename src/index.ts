@@ -12,6 +12,9 @@ app.use(cors({
 
 app.use("/api", routes);
 
+app.use(express.json({ limit: "5gb" }));
+app.use(express.urlencoded({ limit: "5gb", extended: true }));
+
 app.listen(port, () => {
 	console.log(`Listening on port: ${port}`);
 });

@@ -2,51 +2,44 @@ import path from "path";
 import { existsSync, readdirSync } from "fs";
 import { spawn } from "child_process";
 
-export async function checkMediaFolders() {
+export async function checkMediaFolders(root: string, dir: string) {
 
-	const mediaRoot = path.join(process.cwd(), "media");
-	const files = readdirSync(mediaRoot);
+	const check = new Promise((resolve) => {
 
-	const checks = files.map((folder) => {
+		const mediaPath = path.join(root, dir);
+		const playlist = path.join(mediaPath, "master.m3u8");
 
-		return new Promise((resolve) => {
+		if (!existsSync(playlist)) return resolve(null);
 
-			const mediaPath = path.join(mediaRoot, folder);
-			const playlist = path.join(mediaPath, "master.m3u8");
+		const ffmpeg = spawn("ffmpeg", [
+			"-v", "error",
+			"-i", playlist,
+			"-f", "null", "-"
+		]);
 
-			if (!existsSync(playlist)) return resolve(null);
+		let errors: string[] = []
 
-			const ffmpeg = spawn("ffmpeg", [
-				"-v", "error",
-				"-i", playlist,
-				"-f", "null", "-"
-			]);
+		ffmpeg.stderr.on("data", (data) => {
 
-			let errors: string[] = []
+			const str = data.toString();
+			console.log(str);
 
-			ffmpeg.stderr.on("data", (data) => {
+			errors.push(str);
 
-				const str = data.toString();
-				console.log(str);
+		});
 
-				errors.push(str);
+		ffmpeg.on("close", (code) => {
+			resolve({ playlist, errors, code });
+		})
 
-			});
-
-			ffmpeg.on("close", (code) => {
-				resolve({ playlist, errors, code });
-			})
-
-			ffmpeg.on("error", (err) => {
-				console.log("FFMPEG Spawn error.", err);
-				resolve({ playlist, errors: [String(err)], code: -1 });
-			});
-
+		ffmpeg.on("error", (err) => {
+			console.log("FFMPEG Spawn error.", err);
+			resolve({ playlist, errors: [String(err)], code: -1 });
 		});
 
 	});
 
-	const results = await Promise.all(checks);
+	const results = await check;
 	return results;
 
 }
