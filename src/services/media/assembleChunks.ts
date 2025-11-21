@@ -1,12 +1,9 @@
 import fs from "fs";
 import path from "path";
 
-export async function assembleChunks(metadataPath: string, uploadSessionId: string, totalChunks: number) {
+export async function assembleChunks(originalFilename: string, uploadSessionId: string, totalChunks: number) {
 
 	try {
-
-		const metadataFile = await fs.promises.readFile(metadataPath, "utf-8");
-		const { originalFilename } = JSON.parse(metadataFile);
 
 		const uploadPath = path.join(process.cwd(), "tmp", "uploads", originalFilename);
 		const writer = fs.createWriteStream(uploadPath);
@@ -30,13 +27,10 @@ export async function assembleChunks(metadataPath: string, uploadSessionId: stri
 		};
 
 		writer.end();
-		await fs.promises.unlink(metadataPath).catch(err => {
-			console.error("Error deleting metadata file:", err);
-		});
 
 	} catch (err) {
 
-		console.error("Error reading metadata or assembling chunks:", err);
+		console.error("Error assembling chunks:", err);
 		throw err;
 
 	};

@@ -3,6 +3,10 @@ import { createUploadMetadata } from "../../services/media/createUploadMetadata.
 import { assembleChunks } from "../../services/media/assembleChunks.js";
 import { getChunkPaths } from "../../services/media/paths.js";
 import { moveChunk } from "../../services/media/moveChunk.js";
+import videoConversion from "../../queues/videoQueue.js";
+import path from "path";
+import { enqueueVideoConversion } from "../../services/media/enqueueVideoConversion.js";
+import fs from "fs/promises";
 
 export async function uploadChunkController(req: Request, res: Response) {
 
@@ -45,7 +49,18 @@ export async function uploadChunkController(req: Request, res: Response) {
 
 		try {
 
-			await assembleChunks(metadataPath, uploadSessionId, Number(totalChunks));
+			const metadataFile = await fs.readFile(metadataPath, "utf-8");
+			const { originalFilename: filename } = JSON.parse(metadataFile);
+
+			if (!filename) return res.status(500).json({ error: "Error reading metadata file." });
+
+			await enqueueVideoConversion(filename, uploadSessionId);
+			await assembleChunks(filename, uploadSessionId, Number(totalChunks));
+
+			await fs.unlink(metadataPath).catch(err => {
+				console.error("Error deleting metadata file:", err);
+			});
+
 			return res.json({ success: true });
 
 		} catch (err) {

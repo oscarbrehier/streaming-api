@@ -31,6 +31,11 @@ declare global {
 		labels?: string[];
 	};
 
+	interface UploadMediaMetadata {
+		originalFilename?: string;
+		totalChunks?: number;
+	};
+
 };
 
 export { };

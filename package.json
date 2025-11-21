@@ -20,11 +20,13 @@
   },
   "homepage": "https://github.com/oscarbrehier/streaming-api#readme",
   "dependencies": {
+    "bull": "^4.16.5",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "pump": "^3.0.3",
+    "redis": "^5.10.0",
     "systeminformation": "^5.27.11"
   },
   "devDependencies": {
