@@ -54,8 +54,8 @@ export async function uploadChunkController(req: Request, res: Response) {
 
 			if (!filename) return res.status(500).json({ error: "Error reading metadata file." });
 
-			await enqueueVideoConversion(filename, uploadSessionId);
 			await assembleChunks(filename, uploadSessionId, Number(totalChunks));
+			enqueueVideoConversion(filename, uploadSessionId);
 
 			await fs.unlink(metadataPath).catch(err => {
 				console.error("Error deleting metadata file:", err);
