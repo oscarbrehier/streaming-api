@@ -33,8 +33,9 @@ jobs:
               cd ~/streaming-api && \
               git pull origin main && \
               npm install && \
+              npm ci \
               npm run build \
-              npm run start
+              pm2 restart streaming-api || pm2 start dist/src/server.js --name streaming-api
             "
 
 workflows:
