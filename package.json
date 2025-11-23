@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/oscarbrehier/streaming-api#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.84.0",
     "bull": "^4.16.5",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

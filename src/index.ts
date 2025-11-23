@@ -1,8 +1,7 @@
-import dotenv from "dotenv";
-import express, { NextFunction, Request, Response } from "express";
+import "dotenv/config";
+import express from "express";
 import cors from "cors";
 import routes from "./routes/index.js";
-import path from "path";
 
 const app = express();
 const port = process.env.PORT || 3001;
