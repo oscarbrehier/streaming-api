@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import { uploadChunkController } from "../controllers/media/uploadChunk.controllers.js";
 import { getQueueStatusController } from "../controllers/media/conversion/queueStatus.controllers.js";
+import { getMediaController } from "../controllers/media/[id]/getMedia.controllers.js";
 
 const router = Router();
 
@@ -19,5 +20,6 @@ const uploadChunk = multer({ storage: chunkStorage });
 
 router.post("/upload/chunk", uploadChunk.single("file"), uploadChunkController);
 router.get("/queue/status", getQueueStatusController);
+router.get("/:id/master.m3u8", getMediaController);
 
 export default router;
