@@ -4,12 +4,18 @@ import path from "path";
 import { uploadChunkController } from "../controllers/media/uploadChunk.controllers.js";
 import { getQueueStatusController } from "../controllers/media/conversion/queueStatus.controllers.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import { existsSync, mkdirSync } from "fs";
 
 const router = Router();
 
+const tmpDir = path.join(process.cwd(), "tmp");
+if (!existsSync(tmpDir)) {
+	mkdirSync(tmpDir, { recursive: true });
+};
+
 const chunkStorage = multer.diskStorage({
 	destination: (req, file, cb) => {
-		cb(null, path.join(process.cwd(), "tmp"))
+		cb(null, path.join(tmpDir));
 	},
 	filename: (req, file, cb) => {
 		cb(null, `temp-${Date.now()}-${Math.random()}`)
