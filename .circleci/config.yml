@@ -35,6 +35,7 @@ jobs:
               npm install && \
               npm ci && \
               npm run build && \
+              docker compose up -d redis && \
               pm2 restart streaming-api || pm2 start dist/src/server.js --name streaming-api
             "
 

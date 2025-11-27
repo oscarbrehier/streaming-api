@@ -1,5 +1,6 @@
 import Queue from "bull";
 import { convertToHLS } from "../services/media/convertToHLS.js";
+import path from "path";
 
 const videoConversion = new Queue("video-conversion", {
 	redis: {
@@ -10,15 +11,26 @@ const videoConversion = new Queue("video-conversion", {
 
 videoConversion.process(async (job) => {
 
-	const { data } = job;
-	if (!data.inputPath || !data.outputPath) {
-		console.error("Missing `inputPath` or `outputPath` from data.");
-		return ;
+	const { data: { inputPath, outputPath, originalFilename } } = job;
+	if (!inputPath || !outputPath) {
+		console.error("[conversion] Missing `inputPath` or `outputPath` from job data");
+		throw new Error("Missing required paths");
 	};
 
-	await convertToHLS(data.inputPath, data.outputPath);
+	const filename = originalFilename || path.basename(inputPath);
+	const startTime = Date.now();
 
-	return `Processed data: ${job.data}`;
+	try {
+
+		await convertToHLS(inputPath, outputPath);
+
+		const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+		console.log(`[conversion] Completed: ${filename} (${duration}s)`);
+
+	} catch (err) {
+		console.error(`[conversion] Failed: ${filename}`, err);
+		throw err;
+	};
 
 });
 

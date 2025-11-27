@@ -12,7 +12,9 @@ export async function initializeDirectories() {
 	for (const dir of requiredDirs) {
 
 		try {
+			
 			await mkdir(dir, { recursive: true });
+
 		} catch (err) {
 
 			console.error(`Failed to create directory ${dir}:`, err);
@@ -21,5 +23,7 @@ export async function initializeDirectories() {
 		};
 
 	};
+	
+	console.log(`[init] Directories initialized`);
 
 };
