@@ -22,7 +22,9 @@
   "homepage": "https://github.com/oscarbrehier/streaming-api#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",
+    "bcrypt": "^6.0.0",
     "bull": "^4.16.5",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
@@ -33,6 +35,8 @@
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.5",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/multer": "^2.0.0",

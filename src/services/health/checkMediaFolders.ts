@@ -22,8 +22,6 @@ export async function checkMediaFolders(root: string, dir: string) {
 		ffmpeg.stderr.on("data", (data) => {
 
 			const str = data.toString();
-			console.log(str);
-
 			errors.push(str);
 
 		});

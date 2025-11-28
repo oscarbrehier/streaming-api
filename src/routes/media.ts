@@ -36,15 +36,7 @@ router.use(/^\/([a-zA-Z0-9_-]+)\/(.+)$/, async (req: Request, res: Response) => 
 	const mediaId = req.params[0];
 	const requestedFile = req.params[1];
 
-	console.log('Media ID:', mediaId);
-	console.log('Requested file:', requestedFile);
-
 	if (!mediaId || !/^[a-zA-Z0-9_-]+$/.test(mediaId)) {
-
-		console.log({
-			error: "Bad Request",
-			message: "Invalid media ID format."
-		})
 
 		return res.status(400).json({
 			error: "Bad Request",
@@ -54,11 +46,6 @@ router.use(/^\/([a-zA-Z0-9_-]+)\/(.+)$/, async (req: Request, res: Response) => 
 	};
 
 	if (!requestedFile) {
-
-		console.log({
-			error: "Bad Request",
-			message: "File path is missing."
-		})
 
 		return res.status(400).json({
 			error: "Bad Request",
@@ -131,7 +118,6 @@ router.use(/^\/([a-zA-Z0-9_-]+)\/(.+)$/, async (req: Request, res: Response) => 
 
 			if (!parts[0] || !parts[1]) {
 
-				console.log({ error: "Invalid range header" })
 				return res.status(400).json({
 					error: "Bad Request",
 					message: "Invalid range header"

@@ -5,16 +5,20 @@ import { supabaseAdmin } from "../utils/supabaseAdmin.js";
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
 
 	const authHeader = req.headers.authorization;
-	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+	const cookieToken = req.cookies["sb-access-token"];
+
+	const token = authHeader?.startsWith("Bearer ")
+		? authHeader.split(" ")[1]
+		: cookieToken;
+
+	if (!token) {
 
 		return res.status(401).json({
 			error: "Unauthorized",
-			message: "Missing or invalid authorization header"
+			message: "Missing or invalid token"
 		});
 
 	};
-
-	const token = authHeader.split(" ")[1];
 
 	try {
 
@@ -55,6 +59,8 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 			});
 
 		};
+
+		req.user = user;
 
 		next();
 
