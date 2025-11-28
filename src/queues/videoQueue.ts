@@ -1,5 +1,5 @@
 import Queue from "bull";
-import { convertToHLS } from "../services/media/convertToHLS.js";
+import { transcodeVideoToAdaptiveHLS } from "../services/media/transcodeVideoToAdaptiveHLS.js";
 import path from "path";
 
 const videoConversion = new Queue("video-conversion", {
@@ -22,7 +22,7 @@ videoConversion.process(async (job) => {
 
 	try {
 
-		await convertToHLS(inputPath, outputPath);
+		await transcodeVideoToAdaptiveHLS(inputPath, outputPath);
 
 		const duration = ((Date.now() - startTime) / 1000).toFixed(1);
 		console.log(`[conversion] Completed: ${filename} (${duration}s)`);
