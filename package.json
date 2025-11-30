@@ -31,6 +31,7 @@
     "multer": "^2.0.2",
     "pump": "^3.0.3",
     "redis": "^5.10.0",
+    "resend": "^6.5.2",
     "systeminformation": "^5.27.11"
   },
   "devDependencies": {
