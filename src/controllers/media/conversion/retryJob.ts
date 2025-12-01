@@ -3,7 +3,7 @@ import { retryTranscodeJob } from "../../../queues/videoQueue.js";
 
 export async function retryTranscodeJobController(req: Request, res: Response) {
 
-	const { jobId } = req.params;
+	const jobId = req.params.id;
 
 	if (!jobId) {
 		return res.status(400).json({

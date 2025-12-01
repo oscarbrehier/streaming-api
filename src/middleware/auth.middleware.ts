@@ -23,6 +23,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 	try {
 
 		const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
 		
 		if (error || !user) {
 

@@ -1,11 +1,10 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import { uploadChunkController } from "../controllers/media/uploadChunk.controllers.js";
 import { getQueueStatusController } from "../controllers/media/conversion/queueStatus.controllers.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { existsSync, mkdirSync } from "fs";
-import { streamMediaController } from "../controllers/media/stream.controllers.js";
 import { getMediaEncodingProgress } from "../services/media/getEncodingProgress.js";
 import { retryTranscodeJobController } from "../controllers/media/conversion/retryJob.js";
 
@@ -33,14 +32,5 @@ router.get("/queue/status", authMiddleware, getQueueStatusController);
 router.post("/queue/:id/retry", authMiddleware, retryTranscodeJobController);
 
 router.get("/:id/progress", authMiddleware, getMediaEncodingProgress);
-
-router.use(/^\/([a-zA-Z0-9_-]+)\/(.+)$/, streamMediaController);
-
-router.options(/^\/([a-zA-Z0-9_-]+)\/(.+)$/, (req: Request, res: Response) => {
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-	res.setHeader('Access-Control-Allow-Headers', 'Range');
-	res.status(204).send();
-});
 
 export default router;
