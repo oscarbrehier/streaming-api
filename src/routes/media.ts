@@ -7,6 +7,7 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 import { existsSync, mkdirSync } from "fs";
 import { streamMediaController } from "../controllers/media/stream.controllers.js";
 import { getMediaEncodingProgress } from "../services/media/getEncodingProgress.js";
+import { retryTranscodeJobController } from "../controllers/media/conversion/retryJob.js";
 
 const router = Router();
 
@@ -27,7 +28,9 @@ const chunkStorage = multer.diskStorage({
 const uploadChunk = multer({ storage: chunkStorage });
 
 router.post("/upload/chunk", authMiddleware, uploadChunk.single("file"), uploadChunkController);
+
 router.get("/queue/status", authMiddleware, getQueueStatusController);
+router.post("/queue/:id/retry", authMiddleware, retryTranscodeJobController);
 
 router.get("/:id/progress", authMiddleware, getMediaEncodingProgress);
 

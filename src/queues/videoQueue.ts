@@ -35,3 +35,27 @@ videoConversion.process(async (job) => {
 });
 
 export default videoConversion;
+
+export async function retryTranscodeJob(jobId: string) {
+
+	const job = await videoConversion.getJob(jobId);
+
+	if (!job) {
+		throw new Error("Job not found.");
+	};
+
+	if (job.finishedOn && !job.failedReason) {
+		throw new Error("Job is already completed, cannot retry.");
+	};
+
+	try {
+
+		await job.retry();
+
+	} catch (err) {
+
+		throw new Error(`Job retry failed: ${err instanceof Error ? err.message : "Unknown reason."}`);
+
+	};
+
+};

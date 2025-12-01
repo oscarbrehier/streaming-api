@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import { spawn } from "child_process";
 import path from "path";
+import videoConversion from "../../queues/videoQueue.js";
 
 export async function transcodeVideoToAdaptiveHLS(inputPath: string, outputDir: string): Promise<void> {
 
@@ -9,23 +10,61 @@ export async function transcodeVideoToAdaptiveHLS(inputPath: string, outputDir: 
 	return new Promise((resolve, reject) => {
 
 		const args = [
+			'-fflags', '+genpts',
 			'-i', inputPath,
-			'-filter_complex', '[0:v]split=3[v1080][v720][v480];[v1080]scale=w=1920:h=1080[v1080out];[v720]scale=w=1280:h=720[v720out];[v480]scale=w=854:h=480[v480out]',
+
+			'-filter_complex',
+			`
+				[0:v]split=3[v1080][v720][v480];
+
+				[v1080]scale=w=1920:h=1080:force_original_aspect_ratio=decrease,
+					scale=trunc(iw/2)*2:trunc(ih/2)*2,
+					setsar=1[v1080out];
+
+				[v720] scale=w=1280:h=720:force_original_aspect_ratio=decrease,
+					scale=trunc(iw/2)*2:trunc(ih/2)*2,
+					setsar=1[v720out];
+
+				[v480] scale=w=854:h=480:force_original_aspect_ratio=decrease,
+					scale=trunc(iw/2)*2:trunc(ih/2)*2,
+					setsar=1[v480out]
+			`.replace(/\s+/g, ' '),
+
 			// 1080p
-			'-map', '[v1080out]', '-c:v:0', 'libx265', '-preset', 'medium', '-profile:v', 'main', '-g', '48', '-keyint_min', '48', '-sc_threshold', '0', '-b:v:0', '4000k', '-maxrate:v:0', '4280k', '-bufsize:v:0', '6000k', '-tag:v:0', 'hvc1',
+			'-map', '[v1080out]', '-c:v:0', 'libx265', '-preset', 'medium',
+			'-profile:v:0', 'main', '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
+			'-b:v:0', '4000k', '-maxrate:v:0', '4280k', '-bufsize:v:0', '6000k',
+			'-tag:v:0', 'hvc1',
+
 			// 720p
-			'-map', '[v720out]', '-c:v:1', 'libx265', '-preset', 'medium', '-profile:v', 'main', '-g', '48', '-keyint_min', '48', '-sc_threshold', '0', '-b:v:1', '2000k', '-maxrate:v:1', '2140k', '-bufsize:v:1', '3000k', '-tag:v:1', 'hvc1',
+			'-map', '[v720out]', '-c:v:1', 'libx265', '-preset', 'medium',
+			'-profile:v:1', 'main', '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
+			'-b:v:1', '2000k', '-maxrate:v:1', '2140k', '-bufsize:v:1', '3000k',
+			'-tag:v:1', 'hvc1',
+
 			// 480p
-			'-map', '[v480out]', '-c:v:2', 'libx265', '-preset', 'medium', '-profile:v', 'main', '-g', '48', '-keyint_min', '48', '-sc_threshold', '0', '-b:v:2', '1000k', '-maxrate:v:2', '1070k', '-bufsize:v:2', '1500k', '-tag:v:2', 'hvc1',
-			// Audio streams
-			'-map', '0:a', '-map', '0:a', '-map', '0:a', '-c:a', 'aac', '-b:a', '192k',
-			// Settings
-			'-f', 'hls', '-hls_time', '10', '-hls_playlist_type', 'vod', '-hls_flags', 'independent_segments', '-hls_segment_type', 'mpegts',
-			'-hls_segment_filename', path.join(outputDir, "stream_%v/data%03d.ts"),
+			'-map', '[v480out]', '-c:v:2', 'libx265', '-preset', 'medium',
+			'-profile:v:2', 'main', '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
+			'-b:v:2', '1000k', '-maxrate:v:2', '1070k', '-bufsize:v:2', '1500k',
+			'-tag:v:2', 'hvc1',
+
+			// Audio
+			'-map', '0:a:0?', '-map', '0:a:0?', '-map', '0:a:0?',
+			'-c:a', 'aac', '-ac', '2', '-ar', '48000', '-b:a', '192k',
+
+			// HLS
+			'-f', 'hls',
+			'-hls_time', '10',
+			'-hls_playlist_type', 'vod',
+			'-hls_flags', 'independent_segments',
+			'-hls_segment_type', 'mpegts',
+			'-hls_segment_filename', path.join(outputDir, 'stream_%v/data%03d.ts'),
 			'-master_pl_name', 'master.m3u8',
 			'-var_stream_map', 'v:0,a:0 v:1,a:1 v:2,a:2',
-			path.join(outputDir, "stream_%v/playlist.m3u8")
+
+			path.join(outputDir, 'stream_%v/playlist.m3u8'),
 		];
+
 
 		const ffmpeg = spawn("ffmpeg", args);
 
