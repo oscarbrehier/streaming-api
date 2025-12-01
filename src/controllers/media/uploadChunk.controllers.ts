@@ -3,10 +3,9 @@ import { createUploadMetadata } from "../../services/media/createUploadMetadata.
 import { assembleChunks } from "../../services/media/assembleChunks.js";
 import { getChunkPaths } from "../../services/media/paths.js";
 import { moveChunk } from "../../services/media/moveChunk.js";
-import videoConversion from "../../queues/videoQueue.js";
-import path from "path";
 import { enqueueVideoConversion } from "../../services/media/enqueueVideoConversion.js";
 import fs from "fs/promises";
+import redis from "../../config/redis.js";
 
 export async function uploadChunkController(req: Request, res: Response) {
 
@@ -24,6 +23,8 @@ export async function uploadChunkController(req: Request, res: Response) {
 
 		try {
 
+			await redis.hSet(`upload:${uploadSessionId}`, "originalFilename", originalFilename);
+
 			await createUploadMetadata(metadataPath, {
 				originalFilename,
 				totalChunks
@@ -36,21 +37,29 @@ export async function uploadChunkController(req: Request, res: Response) {
 
 	};
 
+	let uploadedChunks = 0;
+
 	try {
 
 		await moveChunk(file.path, chunkPath);
+
+		uploadedChunks = await redis.hIncrBy(`upload:${uploadSessionId}`, "uploadedChunks", 1);
+		await redis.hSet(`upload:${uploadSessionId}`, "totalChunks", totalChunks);
+
 
 	} catch (err) {
 		console.error("Error moving chunk file:", err);
 		res.status(500).json({ error: "Error uploading chunk." });
 	};
 
+	const percent = Math.min(100, (uploadedChunks / Number(totalChunks)) * 100);
+
 	if (chunkIndex === Number(totalChunks)) {
 
 		try {
 
-			const metadataFile = await fs.readFile(metadataPath, "utf-8");
-			const { originalFilename: filename } = JSON.parse(metadataFile);
+			const metadata = await redis.hGetAll(`upload:${uploadSessionId}`);
+			const filename = metadata.originalFilename;
 
 			if (!filename) return res.status(500).json({ error: "Error reading metadata file." });
 
@@ -60,6 +69,8 @@ export async function uploadChunkController(req: Request, res: Response) {
 			await fs.unlink(metadataPath).catch(err => {
 				console.error("Error deleting metadata file:", err);
 			});
+
+			await redis.del(`upload:${uploadSessionId}`);
 
 			return res.json({ success: true });
 
@@ -72,6 +83,6 @@ export async function uploadChunkController(req: Request, res: Response) {
 
 	};
 
-	return res.json({ success: true, chunk: currentChunk });
+	return res.json({ success: true, percent, chunk: currentChunk });
 
 };

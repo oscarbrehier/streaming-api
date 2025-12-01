@@ -57,8 +57,8 @@ export async function transcodeVideoToAdaptiveHLS(inputPath: string, outputDir: 
 				const h = parseInt(timeMatch[1]);
 				const m = parseInt(timeMatch[2]);
 				const s = parseFloat(timeMatch[3]);
-				const currentSeconds = h * 3600 + m * 60 + s;
-				const percent = Math.min(100, (currentSeconds / durationSeconds) * 100);
+				const elapsedSeconds = h * 3600 + m * 60 + s;
+				const percent = Math.min(100, (elapsedSeconds / durationSeconds) * 100);
 
 				try {
 
@@ -66,7 +66,7 @@ export async function transcodeVideoToAdaptiveHLS(inputPath: string, outputDir: 
 						progressFile,
 						JSON.stringify({
 							percent: Math.round(percent * 100) / 100,
-							currentSeconds,
+							elapsedSeconds,
 							durationSeconds
 						})
 					);
@@ -90,7 +90,10 @@ export async function transcodeVideoToAdaptiveHLS(inputPath: string, outputDir: 
 
 				try {
 
-					await fs.writeFile(progressFile, JSON.stringify({ percent: 100 }));
+					await fs.writeFile(progressFile, JSON.stringify({
+						percent: 100,
+						elapsedSeconds: durationSeconds,
+					}));
 
 					const masterPlaylist = `#EXTM3U
 #EXT-X-VERSION:3
