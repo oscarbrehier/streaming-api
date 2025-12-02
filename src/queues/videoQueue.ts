@@ -1,6 +1,6 @@
 import Queue from "bull";
-import { transcodeVideoToAdaptiveHLS } from "../services/media/transcodeVideoToAdaptiveHLS.js";
 import path from "path";
+import { Resolution, transcodeHLSVariant } from "../services/media/transcode.js";
 
 const videoConversion = new Queue("video-conversion", {
 	redis: {
@@ -11,7 +11,7 @@ const videoConversion = new Queue("video-conversion", {
 
 videoConversion.process(async (job) => {
 
-	const { data: { inputPath, outputPath, originalFilename } } = job;
+	const { data: { inputPath, outputPath, originalFilename, resolution } } = job;
 	if (!inputPath || !outputPath) {
 		console.error("[conversion] Missing `inputPath` or `outputPath` from job data");
 		throw new Error("Missing required paths");
@@ -22,10 +22,32 @@ videoConversion.process(async (job) => {
 
 	try {
 
-		await transcodeVideoToAdaptiveHLS(inputPath, outputPath);
+		if (resolution) {
 
-		const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-		console.log(`[conversion] Completed: ${filename} (${duration}s)`);
+			await transcodeHLSVariant(inputPath, outputPath, resolution);
+			const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+			console.log(`[conversion] Completed ${resolution}: ${filename} (${duration}s)`);
+
+
+		} else {
+
+			const resolutions: Resolution[] = ["1080", "720", "480"];
+
+			for (const res of resolutions) {
+
+				await videoConversion.add({
+					inputPath,
+					outputPath,
+					originalFilename,
+					resolution: res
+				}, {
+					jobId: `${job.id}_${res}`,
+					priority: res == "720" ? 1 : 2
+				});
+
+			};
+
+		};
 
 	} catch (err) {
 		console.error(`[conversion] Failed: ${filename}`, err);

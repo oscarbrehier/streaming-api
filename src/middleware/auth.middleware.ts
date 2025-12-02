@@ -2,10 +2,30 @@ import { createClient } from "@supabase/supabase-js";
 import { NextFunction, Request, Response } from "express";
 import { supabaseAdmin } from "../utils/supabaseAdmin.js";
 
+function getSBAccessToken(cookies: Record<string, string>): string | null {
+
+	const key = `sb-${process.env.SUPABASE_PROJECT_REF}-auth-token`;
+	const authToken = cookies?.[key];
+
+	if (!authToken || !authToken.startsWith("base64-")) return null;
+
+	try {
+
+		const decoded = Buffer.from(authToken.slice(7), 'base64').toString("utf-8");
+		const sessionData = JSON.parse(decoded);
+		console.log(sessionData)
+		return sessionData.access_token ?? null;
+
+	} catch (err) {
+		return null;
+	};
+
+};
+
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
 
 	const authHeader = req.headers.authorization;
-	const cookieToken = req.cookies["sb-access-token"];
+	const cookieToken = getSBAccessToken(req.cookies);
 
 	const token = authHeader?.startsWith("Bearer ")
 		? authHeader.split(" ")[1]
@@ -24,7 +44,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
 		const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
-		
+
 		if (error || !user) {
 
 			return res.status(401).json({
@@ -68,6 +88,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 	} catch (err) {
 
 		console.log("Auth middleware error:", err);
+		
 		return res.status(500).json({
 			error: "Internal Server Error",
 			message: "Authentication failed"

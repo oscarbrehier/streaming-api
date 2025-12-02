@@ -15,7 +15,8 @@ const allowedDomains = [
 
 app.use(cors({
 	origin: allowedDomains,
-	credentials: true
+	credentials: true,
+	allowedHeaders: ['Authorization', 'Content-Type', 'Accept']
 }));
 
 app.use(cookieParser());
@@ -30,7 +31,7 @@ async function startServer() {
 	try {
 
 		await initializeDirectories();
-		
+
 		app.listen(port, () => {
 			console.log(`Listening on port: ${port}`);
 		});

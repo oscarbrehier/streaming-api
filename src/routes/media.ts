@@ -5,8 +5,8 @@ import { uploadChunkController } from "../controllers/media/uploadChunk.controll
 import { getQueueStatusController } from "../controllers/media/conversion/queueStatus.controllers.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { existsSync, mkdirSync } from "fs";
-import { getMediaEncodingProgress } from "../services/media/getEncodingProgress.js";
 import { retryTranscodeJobController } from "../controllers/media/conversion/retryJob.js";
+import { getEncodingProgressController } from "../controllers/media/conversion/encodingProgress.controllers.js";
 
 const router = Router();
 
@@ -31,6 +31,6 @@ router.post("/upload/chunk", authMiddleware, uploadChunk.single("file"), uploadC
 router.get("/queue/status", authMiddleware, getQueueStatusController);
 router.post("/queue/:id/retry", authMiddleware, retryTranscodeJobController);
 
-router.get("/:id/progress", authMiddleware, getMediaEncodingProgress);
+router.get("/:id/progress", authMiddleware, getEncodingProgressController);
 
 export default router;

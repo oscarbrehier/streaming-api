@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getMediaEncodingProgress } from "../../../services/media/getEncodingProgress.js";
+import { randomInt } from "crypto";
 
 export function getEncodingProgressController(req: Request, res: Response) {
 
@@ -19,12 +20,13 @@ export function getEncodingProgressController(req: Request, res: Response) {
 	res.setHeader("Connection", "keep-alive");
 	res.flushHeaders();
 
-	res.write("event: connected\ndata: OK\n\n");
+	console.log('Headers sent, connection established');
+
+	res.write(`data: ${JSON.stringify({ connected: true })}\n\n`);
 
 	const interval = setInterval(async () => {
 
 		const encodingProgress = await getMediaEncodingProgress(mediaId);
-
 		res.write(`data: ${JSON.stringify(encodingProgress)}\n\n`);
 
 	}, 1000);
