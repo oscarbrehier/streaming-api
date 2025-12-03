@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { getQueueStatus } from "../../../services/media/getQueueStatus.js";
 
-export async function getQueueStatusController(req: Request, res: Response) {
+export async function getQueue(req: Request, res: Response) {
 
 	try {
 

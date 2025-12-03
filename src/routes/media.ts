@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import { uploadChunkController } from "../controllers/media/uploadChunk.controllers.js";
-import { getQueueStatusController } from "../controllers/media/transcoding/queueStatus.controllers.js";
+import { getQueue } from "../controllers/media/transcoding/getQueue.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { existsSync, mkdirSync } from "fs";
 import { retryTranscodeJobController } from "../controllers/media/transcoding/retryJob.js";
@@ -30,7 +30,7 @@ const uploadChunk = multer({ storage: chunkStorage });
 
 router.post("/upload/chunk", authMiddleware, uploadChunk.single("file"), uploadChunkController);
 
-router.get("/transcoding/status", authMiddleware, getQueueStatusController);
+router.get("/transcoding/queue", authMiddleware, getQueue);
 router.patch("/transcoding", authMiddleware, updateMediaTranscodingQueueController);
 
 router.get("/transcoding/:id/progress", authMiddleware, getEncodingProgressController);

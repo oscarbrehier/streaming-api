@@ -5,6 +5,9 @@ export async function getQueueStatus() {
 
 	const states = ['waiting', 'active', 'completed', 'failed', 'delayed'];
 
+	const isPaused = await mediaTranscoding.isPaused();
+	const counts = await mediaTranscoding.getJobCounts();
+
 	const jobsByState = await Promise.all(
 
 		states.map(async (state) => {
@@ -15,6 +18,10 @@ export async function getQueueStatus() {
 		})
 	);
 
-	return jobsByState.flat();
+	return {
+		state: isPaused ? "paused" : "active",
+		counts,
+		jobs: jobsByState.flat()
+	};
 
 };

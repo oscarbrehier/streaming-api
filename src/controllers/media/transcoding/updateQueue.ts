@@ -16,11 +16,11 @@ export async function updateMediaTranscodingQueueController(req: Request, res: R
 
 		if (action === "resume") {
 			await resumeMediaTranscodingQueue();
-		} else if (action === "pause") {
-			await pauseMediaTranscodingQueue();
-		};
+			return { state: "active" };
+		}
 
-		return { success: true };
+		await pauseMediaTranscodingQueue();
+		return { state: "paused" };
 
 	} catch (err) {
 
