@@ -3,9 +3,9 @@ import { createUploadMetadata } from "../../services/media/createUploadMetadata.
 import { assembleChunks } from "../../services/media/assembleChunks.js";
 import { getChunkPaths } from "../../services/media/paths.js";
 import { moveChunk } from "../../services/media/moveChunk.js";
-import { enqueueVideoConversion } from "../../services/media/enqueueVideoConversion.js";
 import fs from "fs/promises";
 import redis from "../../config/redis.js";
+import { addTranscodeJobToQueue } from "../../queues/mediaTranscoding/utils.js";
 
 export async function uploadChunkController(req: Request, res: Response) {
 
@@ -64,7 +64,7 @@ export async function uploadChunkController(req: Request, res: Response) {
 			if (!filename) return res.status(500).json({ error: "Error reading metadata file." });
 
 			await assembleChunks(filename, uploadSessionId, Number(totalChunks));
-			enqueueVideoConversion(filename);
+			addTranscodeJobToQueue(filename);
 
 			await fs.unlink(metadataPath).catch(err => {
 				console.error("Error deleting metadata file:", err);

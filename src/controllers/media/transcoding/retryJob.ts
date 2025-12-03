@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { retryTranscodeJob } from "../../../queues/videoQueue.js";
+import { retryTranscodeJob } from "../../../queues/mediaTranscoding/utils.js";
 
 export async function retryTranscodeJobController(req: Request, res: Response) {
 
@@ -15,6 +15,7 @@ export async function retryTranscodeJobController(req: Request, res: Response) {
 	try {
 
 		await retryTranscodeJob(jobId);
+		return res.status(200).json({ success: true });
 
 	} catch (err) {
 

@@ -1,5 +1,5 @@
 import { JobStatus } from "bull";
-import videoConversion from "../../queues/videoQueue.js"
+import mediaTranscoding from "../../queues/mediaTranscoding/index.js"
 
 export async function getQueueStatus() {
 
@@ -9,7 +9,7 @@ export async function getQueueStatus() {
 
 		states.map(async (state) => {
 
-			const jobs = await videoConversion.getJobs([state as JobStatus]);
+			const jobs = await mediaTranscoding.getJobs([state as JobStatus]);
 			return jobs.map(job => ({ ...job.toJSON(), status: state }));
 
 		})

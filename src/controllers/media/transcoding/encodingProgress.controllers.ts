@@ -26,7 +26,15 @@ export function getEncodingProgressController(req: Request, res: Response) {
 
 	const interval = setInterval(async () => {
 
-		const encodingProgress = await getMediaEncodingProgress(mediaId);
+		const encodingProgress = {
+			"resolution": "480",
+			"percent": randomInt(100),
+			"elapsedSeconds": 15.4,
+			"durationSeconds": 15.4,
+			"status": "done"
+		}
+
+		// const encodingProgress = await getMediaEncodingProgress(mediaId);
 		res.write(`data: ${JSON.stringify(encodingProgress)}\n\n`);
 
 	}, 1000);

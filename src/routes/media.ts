@@ -2,11 +2,13 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import { uploadChunkController } from "../controllers/media/uploadChunk.controllers.js";
-import { getQueueStatusController } from "../controllers/media/conversion/queueStatus.controllers.js";
+import { getQueueStatusController } from "../controllers/media/transcoding/queueStatus.controllers.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { existsSync, mkdirSync } from "fs";
-import { retryTranscodeJobController } from "../controllers/media/conversion/retryJob.js";
-import { getEncodingProgressController } from "../controllers/media/conversion/encodingProgress.controllers.js";
+import { retryTranscodeJobController } from "../controllers/media/transcoding/retryJob.js";
+import { getEncodingProgressController } from "../controllers/media/transcoding/encodingProgress.controllers.js";
+import { removeTranscodingJobController } from "../controllers/media/transcoding/removeJob.js";
+import { updateMediaTranscodingQueueController } from "../controllers/media/transcoding/updateQueue.js";
 
 const router = Router();
 
@@ -28,9 +30,11 @@ const uploadChunk = multer({ storage: chunkStorage });
 
 router.post("/upload/chunk", authMiddleware, uploadChunk.single("file"), uploadChunkController);
 
-router.get("/queue/status", authMiddleware, getQueueStatusController);
-router.post("/queue/:id/retry", authMiddleware, retryTranscodeJobController);
+router.get("/transcoding/status", authMiddleware, getQueueStatusController);
+router.patch("/transcoding", authMiddleware, updateMediaTranscodingQueueController);
 
-router.get("/:id/progress", authMiddleware, getEncodingProgressController);
+router.get("/transcoding/:id/progress", authMiddleware, getEncodingProgressController);
+router.post("/transcoding/:id/retry", authMiddleware, retryTranscodeJobController);
+router.delete("/transcoding/:id", authMiddleware, removeTranscodingJobController);
 
 export default router;
