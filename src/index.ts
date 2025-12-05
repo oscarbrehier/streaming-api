@@ -9,7 +9,6 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 const allowedDomains = [
-	"http://localhost:3000",
 	process.env.APP_URL
 ].filter(d => d != undefined);
 

@@ -9,6 +9,7 @@ import { retryTranscodeJobController } from "../controllers/media/transcoding/re
 import { getEncodingProgressController } from "../controllers/media/transcoding/encodingProgress.controllers.js";
 import { removeTranscodingJobController } from "../controllers/media/transcoding/removeJob.js";
 import { updateMediaTranscodingQueueController } from "../controllers/media/transcoding/updateQueue.js";
+import { getMediaAvailabilityController } from "../controllers/media/getMediaAvailability.js";
 
 const router = Router();
 
@@ -36,5 +37,7 @@ router.patch("/transcoding", authMiddleware, updateMediaTranscodingQueueControll
 router.get("/transcoding/:id/progress", authMiddleware, getEncodingProgressController);
 router.post("/transcoding/:id/retry", authMiddleware, retryTranscodeJobController);
 router.delete("/transcoding/:id", authMiddleware, removeTranscodingJobController);
+
+router.get("/:id/availability", authMiddleware, getMediaAvailabilityController);
 
 export default router;
