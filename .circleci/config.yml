@@ -11,39 +11,56 @@ jobs:
     executor: node-executor
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-
       - run:
           name: Install dependencies
-          command: npm install
+          command: npm ci
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Build project
           command: npm run build
+      - run:
+          name: Run tests
+          command: npm test || echo "No tests found"
 
   deploy:
-    executor: node-executor
+    docker:
+      - image: cimg/base:stable
     steps:
+      - checkout
       - add_ssh_keys
-      - run:
-          name: Verify SSH connection
-          command: ssh -o StrictHostKeyChecking=no deployer@$SERVER_IP "echo 'SSH connection successful'"
       - run:
           name: Deploy to VPS
           command: |
-            ssh -o StrictHostKeyChecking=no deployer@${SERVER_IP} "\
-              cd ~/streaming-api || git clone git@github.com:oscarbrehier/streaming-api.git ~/streaming-api && \
-              cd ~/streaming-api && \
-              git pull origin main && \
-              npm install && \
-              npm ci && \
-              npm run build && \
-              docker compose up -d redis && \
-              pm2 restart streaming-api || pm2 start dist/src/server.js --name streaming-api
+            ssh -o StrictHostKeyChecking=no deployer@${SERVER_IP} "
+              if [ ! -d ~/streaming ]; then
+                git clone git@github.com:oscarbrehier/streaming.git ~/streaming
+              fi
+              
+              cd ~/streaming
+              git pull origin main
+              npm ci
+              npm run build
+              
+              pm2 restart streaming || pm2 start npm --name streaming -- start
             "
 
 workflows:
-  version: 2
   build_and_deploy:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: main
       - deploy:
           requires:
             - build
+          filters:
+            branches:
+              only: main

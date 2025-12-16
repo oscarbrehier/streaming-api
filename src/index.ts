@@ -35,7 +35,7 @@ If you are a copyright holder and believe that any content accessed through this
 
 });
 
-app.use("/api", routes);
+app.use("/", routes);
 
 async function startServer() {
 
