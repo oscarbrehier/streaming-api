@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 
 export async function verifyCode(userId: string, code: string) {
 
-	const { error, data } = await supabaseAdmin
+	const { error, data: challenge } = await supabaseAdmin
 		.from("twofa_challenges")
 		.select(`
 			id,
@@ -11,41 +11,36 @@ export async function verifyCode(userId: string, code: string) {
 		`)
 		.eq("user_id", userId)
 		.eq("consumed", false)
-		.gte("expires_at", new Date().toISOString());
+		.gte("expires_at", new Date().toISOString())
+		.order("created_at", { ascending: false })
+		.limit(1)
+		.single();
 
-	if (error) throw new Error("Error fetching 2fa challenges");
-	if (!data || data.length === 0) return { verified: false };
+	if (error || !challenge) return { verified: false };
 
-	for (const challenge of data) {
 
-		const match = await bcrypt.compare(code, challenge.code_hash);
-		
-		if (match) {
+	const match = await bcrypt.compare(code, challenge.code_hash);
 
-			await supabaseAdmin
-				.from("twofa_challenges")
-				.update({ consumed: true })
-				.eq("id", challenge.id);
+	if (!match) return { verified: false };
 
-			const sessionExpires = new Date(Date.now() + (24 * 60 * 60 * 1000));
+	await supabaseAdmin
+		.from("twofa_challenges")
+		.update({ consumed: true })
+		.eq("id", challenge.id);
 
-			const { error: sessionError } = await supabaseAdmin
-				.from("twofa_sessions")
-				.insert({
-					user_id: userId,
-					session_id: crypto.randomUUID(),
-					verified_at: new Date().toISOString(),
-					expires_at: sessionExpires.toISOString()
-				});
+	const sessionExpires = new Date(Date.now() + (24 * 60 * 60 * 1000));	
+	const { error: sessionError } = await supabaseAdmin
+		.from("twofa_sessions")
+		.insert({
+			user_id: userId,
+			session_id: crypto.randomUUID(),
+			verified_at: new Date().toISOString(),
+			expires_at: sessionExpires.toISOString()
+		});
 
-			if (sessionError) throw new Error("Failed to create 2FA session");
+	if (sessionError) throw new Error("Failed to create 2FA session");
 
-			return { verified: true };
- 
-		};
+	return { verified: true };
 
-	};
-
-	return { verified: false }; 
 
 };
