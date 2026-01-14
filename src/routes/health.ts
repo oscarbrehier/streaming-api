@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { sysInfoController } from "../controllers/health/system.controllers.js";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { internalAuth } from "../middleware/internalAuth.middleware.js";
 
 const router = Router();
 
-router.get("/system", authMiddleware, sysInfoController);
+router.get("/system", internalAuth, sysInfoController);
 
 export default router;
