@@ -5,12 +5,16 @@ export async function sendChallengeEmail(email: string, code: string) {
 
 	if (!email) return ;
 
+	console.log("attempting to send code to:", email);
+
 	const { data, error } = await resend.emails.send({
 		from: "Streaming <noreply@updates.eggspank.cloud>",
 		to: [email],
 		subject: "Your One-Time Password",
 		html: OTPEmail(code),
 	});
+
+	console.log("email send error", error);
 
 	if (error) {
 		console.error(error);

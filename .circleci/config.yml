@@ -13,37 +13,50 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: npm install
+          command: npm ci
       - run:
           name: Build project
           command: npm run build
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist
+            - package.json
+            - package-lock.json
 
   deploy:
-    executor: node-executor
+    docker:
+      - image: cimg/base:stable
     steps:
+      - attach_workspace:
+          at: ~/repo
       - add_ssh_keys
-      - run:
-          name: Verify SSH connection
-          command: ssh -o StrictHostKeyChecking=no deployer@$SERVER_IP "echo 'SSH connection successful'"
       - run:
           name: Deploy to VPS
           command: |
-            ssh -o StrictHostKeyChecking=no deployer@${SERVER_IP} "\
-              cd ~/streaming-api || git clone git@github.com:oscarbrehier/streaming-api.git ~/streaming-api && \
-              cd ~/streaming-api && \
-              git pull origin main && \
-              npm install && \
-              npm ci && \
-              npm run build && \
-              docker compose up -d redis && \
+            ssh -o StrictHostKeyChecking=no deploy@${SERVER_IP} "mkdir -p /opt/streaming-api"
+            cd ~/repo
+            tar czf deploy.tar.gz dist package.json package-lock.json
+            scp -o StrictHostKeyChecking=no deploy.tar.gz deploy@${SERVER_IP}:/opt/streaming-api/
+            ssh -o StrictHostKeyChecking=no deploy@${SERVER_IP} "
+              cd /opt/streaming-api
+              tar xzf deploy.tar.gz
+              rm deploy.tar.gz
+              npm ci --omit=dev
+              docker compose up -d redis
               pm2 restart streaming-api || pm2 start dist/src/index.js --name streaming-api
             "
 
 workflows:
-  version: 2
   build_and_deploy:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: main
       - deploy:
           requires:
             - build
+          filters:
+            branches:
+              only: main
