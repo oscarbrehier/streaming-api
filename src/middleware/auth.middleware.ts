@@ -4,8 +4,7 @@ import { supabaseAdmin } from "../utils/supabaseAdmin.js";
 
 function getSBAccessToken(cookies: Record<string, string>): string | null {
 
-	const key = `sb-${process.env.SUPABASE_PROJECT_REF}-auth-token`;
-	const authToken = cookies?.[key];
+	const authToken = cookies?.["sb-db-auth-token"] || cookies?.["sb-access-token"];
 
 	if (!authToken || !authToken.startsWith("base64-")) return null;
 
@@ -88,7 +87,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 	} catch (err) {
 
 		console.log("Auth middleware error:", err);
-		
+
 		return res.status(500).json({
 			error: "Internal Server Error",
 			message: "Authentication failed"

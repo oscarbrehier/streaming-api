@@ -23,6 +23,7 @@ jobs:
             - dist
             - package.json
             - package-lock.json
+            - docker-compose.yml
 
   deploy:
     docker:
@@ -36,7 +37,7 @@ jobs:
           command: |
             ssh -o StrictHostKeyChecking=no deploy@${SERVER_IP} "mkdir -p /opt/streaming-api"
             cd ~/repo
-            tar czf deploy.tar.gz dist package.json package-lock.json
+            tar czf deploy.tar.gz dist package.json package-lock.json docker-compose.yml
             scp -o StrictHostKeyChecking=no deploy.tar.gz deploy@${SERVER_IP}:/opt/streaming-api/
             ssh -o StrictHostKeyChecking=no deploy@${SERVER_IP} "
               cd /opt/streaming-api
